@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# This script is hard-coded for my personal development environment. Providing it on GitHub solely as reference for how builds were generated. You will need to set up your own build workflow. An LLM can likely adapt this file for you if you are not sure where to begin.
+# -Christopher
+
 # Compile Java files
 echo "Compiling Java sources..."
 rm -rf build/classes
@@ -28,9 +31,9 @@ echo "Packaging JAR..."
 mkdir -p build/libs
 cp -r src/main/resources/* build/classes/
 cd build/classes
-$JAVA_HOME/bin/jar cf ../libs/player-dimmer-1.0.0.jar .
+$JAVA_HOME/bin/jar cf ../libs/player-dimmer-fabric-26.1.2-1.0.0.jar .
 cd ../..
 
-echo "Done! The JAR is at build/libs/player-dimmer-1.0.0.jar"
-cp build/libs/player-dimmer-1.0.0.jar .
+echo "Done! The JAR is at build/libs/player-dimmer-fabric-26.1.2-1.0.0.jar"
+cp build/libs/player-dimmer-fabric-26.1.2-1.0.0.jar .
 echo "Copied to current directory."
