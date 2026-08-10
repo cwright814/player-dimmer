@@ -27,13 +27,18 @@ CP="$CP:/home/cwright/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8
 JAVA_HOME="/home/cwright/.local/share/PandoraLauncher/runtime/graalvm-25.1.3/linux"
 $JAVA_HOME/bin/javac --release 25 -cp "$CP" -d build/classes $(find src/main/java -name "*.java")
 
+# Extract versions from gradle.properties
+MC_VERSION=$(grep "^minecraft_version=" gradle.properties | cut -d'=' -f2)
+MOD_VERSION=$(grep "^mod_version=" gradle.properties | cut -d'=' -f2)
+JAR_NAME="player-dimmer-fabric-${MC_VERSION}-${MOD_VERSION}.jar"
+
 echo "Packaging JAR..."
 mkdir -p build/libs
 cp -r src/main/resources/* build/classes/
 cd build/classes
-$JAVA_HOME/bin/jar cf ../libs/player-dimmer-fabric-26.1.2-1.0.0.jar .
+$JAVA_HOME/bin/jar cf ../libs/${JAR_NAME} .
 cd ../..
 
-echo "Done! The JAR is at build/libs/player-dimmer-fabric-26.1.2-1.0.0.jar"
-cp build/libs/player-dimmer-fabric-26.1.2-1.0.0.jar .
+echo "Done! The JAR is at build/libs/${JAR_NAME}"
+cp build/libs/${JAR_NAME} .
 echo "Copied to current directory."
