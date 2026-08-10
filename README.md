@@ -18,3 +18,10 @@ A Minecraft mod (v26.1.2) that gives you control over the brightness of the play
 ## Authors
 * Gemini 3.1 Pro
 * cwright814
+
+## Development
+To increment the version number for a new release, use the included version bumping script. This ensures all relevant files are kept in sync:
+```bash
+./bump-version.sh <new_version>
+```
+Example: `./bump-version.sh 1.0.2`
