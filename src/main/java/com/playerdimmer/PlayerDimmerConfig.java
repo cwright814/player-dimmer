@@ -13,8 +13,8 @@ public class PlayerDimmerConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "player-dimmer.json");
 
-    public int reductionPercentage = 10;
-    public int maximumPercentage = 90;
+    public int reductionPercentage = 15;
+    public int maximumPercentage = 70;
     public int minimumPercentage = 0;
     public boolean applyToOtherPlayers = true;
 

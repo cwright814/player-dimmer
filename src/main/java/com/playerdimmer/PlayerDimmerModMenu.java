@@ -22,13 +22,13 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Reduction (%)"), PlayerDimmerConfig.get().reductionPercentage, 0, 100)
-                    .setDefaultValue(10)
+                    .setDefaultValue(15)
                     .setTooltip(Component.literal("Reduces the brightness intensity by this percentage."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().reductionPercentage = newValue)
                     .build());
 
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Maximum (%)"), PlayerDimmerConfig.get().maximumPercentage, 0, 100)
-                    .setDefaultValue(90)
+                    .setDefaultValue(70)
                     .setTooltip(Component.literal("Caps the maximum brightness."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maximumPercentage = newValue)
                     .build());

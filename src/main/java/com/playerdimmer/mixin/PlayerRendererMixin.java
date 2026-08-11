@@ -33,11 +33,8 @@ public class PlayerRendererMixin<T extends Entity> {
             int blockLightLevel = blockLight >> 4;
             int skyLightLevel = skyLight >> 4;
             
-            // Apply modifiers to block light
+            // Apply modifiers ONLY to block light
             blockLightLevel = applyModifiers(blockLightLevel, config);
-            
-            // Apply modifiers to sky light
-            skyLightLevel = applyModifiers(skyLightLevel, config);
             
             // Repack
             int newBlockLight = blockLightLevel << 4;
