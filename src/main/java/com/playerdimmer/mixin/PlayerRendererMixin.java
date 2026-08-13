@@ -13,6 +13,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EntityRenderer.class)
 public class PlayerRendererMixin<T extends Entity> {
 
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeBlockLight = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeSkyLight = new java.util.WeakHashMap<>();
+
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", at = @At("RETURN"))
     private void onExtractRenderState(Entity entity, net.minecraft.client.renderer.entity.state.EntityRenderState state, float partialTicks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         if (entity instanceof Player player) {
@@ -24,49 +29,136 @@ public class PlayerRendererMixin<T extends Entity> {
                 return;
             }
 
-            int packedLight = state.lightCoords;
-            
-            // Extract block and sky light
-            int blockLight = (packedLight & 0xFFFF);
-            int skyLight = (packedLight >> 16) & 0xFFFF;
-            
-            int blockLightLevel = blockLight >> 4;
-            int skyLightLevel = skyLight >> 4;
+            float blockLightLevel;
+            float skyLightLevel;
+
+            if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FANCY) {
+                // Compute true 3D trilinear interpolation
+                float[] trilinear = computeTrilinearLight(player, partialTicks);
+                blockLightLevel = trilinear[0];
+                skyLightLevel = trilinear[1];
+            } else {
+                int packedLight = state.lightCoords;
+                blockLightLevel = (packedLight & 0xFFFF) / 16.0f;
+                skyLightLevel = ((packedLight >> 16) & 0xFFFF) / 16.0f;
+
+                if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FAST) {
+                    double dx = player.getX() - player.xOld;
+                    double dy = player.getY() - player.yOld;
+                    double dz = player.getZ() - player.zOld;
+                    float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    float lerpFactor = Math.max(0.0f, Math.min(1.0f, 0.02f + (distanceMoved * 2.0f)));
+                    
+                    java.util.UUID uuid = player.getUUID();
+                    float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
+                    float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
+                    
+                    blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
+                    skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
+                    
+                    fastModeBlockLight.put(uuid, blockLightLevel);
+                    fastModeSkyLight.put(uuid, skyLightLevel);
+                }
+            }
             
             // Apply modifiers ONLY to block light
             blockLightLevel = applyModifiers(blockLightLevel, config);
             
             // Repack
-            int newBlockLight = blockLightLevel << 4;
-            int newSkyLight = skyLightLevel << 4;
+            int newBlockLight = (int) (blockLightLevel * 16.0f);
+            int newSkyLight = (int) (skyLightLevel * 16.0f);
             
             int newPackedLight = newBlockLight | (newSkyLight << 16);
             state.lightCoords = newPackedLight;
         }
     }
     
-    private int applyModifiers(int lightLevel, PlayerDimmerConfig config) {
+    @org.spongepowered.asm.mixin.Unique
+    private float[] computeTrilinearLight(Player player, float partialTicks) {
+        net.minecraft.world.level.Level level = player.level();
+        net.minecraft.world.level.lighting.LevelLightEngine lightEngine = level.getLightEngine();
+
+        net.minecraft.world.phys.Vec3 pos = player.getLightProbePosition(partialTicks);
+        double xBase = pos.x() - 0.5;
+        double yBase = pos.y() - 0.5;
+        double zBase = pos.z() - 0.5;
+
+        int x0 = (int) Math.floor(xBase);
+        int y0 = (int) Math.floor(yBase);
+        int z0 = (int) Math.floor(zBase);
+
+        float xFrac = (float) (xBase - x0);
+        float yFrac = (float) (yBase - y0);
+        float zFrac = (float) (zBase - z0);
+
+        float blockLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0);
+        float blockLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0);
+        float blockLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0);
+        float blockLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0);
+        float blockLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0 + 1);
+        float blockLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0 + 1);
+        float blockLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0 + 1);
+        float blockLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0 + 1);
+
+        float blockLight = lerp3(xFrac, yFrac, zFrac, blockLight000, blockLight100, blockLight010, blockLight110, blockLight001, blockLight101, blockLight011, blockLight111);
+
+        float skyLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0);
+        float skyLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0);
+        float skyLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0);
+        float skyLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0);
+        float skyLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0 + 1);
+        float skyLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0 + 1);
+        float skyLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0 + 1);
+        float skyLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0 + 1);
+
+        float skyLight = lerp3(xFrac, yFrac, zFrac, skyLight000, skyLight100, skyLight010, skyLight110, skyLight001, skyLight101, skyLight011, skyLight111);
+
+        return new float[]{blockLight, skyLight};
+    }
+    
+    @org.spongepowered.asm.mixin.Unique
+    private float getLight(net.minecraft.world.level.lighting.LevelLightEngine engine, net.minecraft.world.level.LightLayer layer, int x, int y, int z) {
+        net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+        return engine.getLayerListener(layer).getLightValue(pos);
+    }
+    
+    @org.spongepowered.asm.mixin.Unique
+    private float lerp3(float dx, float dy, float dz, float c000, float c100, float c010, float c110, float c001, float c101, float c011, float c111) {
+        float c00 = c000 + dx * (c100 - c000);
+        float c10 = c010 + dx * (c110 - c010);
+        float c01 = c001 + dx * (c101 - c001);
+        float c11 = c011 + dx * (c111 - c011);
+        
+        float c0 = c00 + dy * (c10 - c00);
+        float c1 = c01 + dy * (c11 - c01);
+        
+        return c0 + dz * (c1 - c0);
+    }
+
+    @org.spongepowered.asm.mixin.Unique
+    private float applyModifiers(float lightLevel, PlayerDimmerConfig config) {
         // Apply reduction
         if (config.reductionPercentage > 0) {
             float reductionFactor = 1.0f - (config.reductionPercentage / 100.0f);
-            lightLevel = (int) (lightLevel * reductionFactor);
+            lightLevel = lightLevel * reductionFactor;
         }
         
         // Apply maximum
-        int maxLevel = (int) (15.0f * (config.maximumPercentage / 100.0f));
+        float maxLevel = 15.0f * (config.maximumPercentage / 100.0f);
         if (lightLevel > maxLevel) {
             lightLevel = maxLevel;
         }
         
         // Apply minimum
-        int minLevel = (int) (15.0f * (config.minimumPercentage / 100.0f));
+        float minLevel = 15.0f * (config.minimumPercentage / 100.0f);
         if (lightLevel < minLevel) {
             lightLevel = minLevel;
         }
         
         // Ensure bounds
-        if (lightLevel < 0) lightLevel = 0;
-        if (lightLevel > 15) lightLevel = 15;
+        if (lightLevel < 0.0f) lightLevel = 0.0f;
+        if (lightLevel > 15.0f) lightLevel = 15.0f;
         
         return lightLevel;
     }

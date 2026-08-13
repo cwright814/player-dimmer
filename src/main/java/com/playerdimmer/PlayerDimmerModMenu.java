@@ -45,6 +45,12 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().applyToOtherPlayers = newValue)
                     .build());
 
+            general.addEntry(entryBuilder.startEnumSelector(Component.literal("Interpolation Mode"), PlayerDimmerConfig.InterpolationMode.class, PlayerDimmerConfig.get().interpolationMode)
+                    .setDefaultValue(PlayerDimmerConfig.InterpolationMode.FANCY)
+                    .setTooltip(Component.literal("Smooth brightness interpolation mode. OFF: No interpolation. FAST: Velocity-based (fast, illusion of space). FANCY: True 3D spatial interpolation (accurate, heavier)."))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().interpolationMode = newValue)
+                    .build());
+
             return builder.build();
         };
     }

@@ -18,6 +18,11 @@ public class PlayerDimmerConfig {
     public int minimumPercentage = 0;
     public boolean applyToOtherPlayers = true;
 
+    public enum InterpolationMode {
+        OFF, FAST, FANCY
+    }
+    public InterpolationMode interpolationMode = InterpolationMode.FANCY;
+
     private static PlayerDimmerConfig instance;
 
     public static PlayerDimmerConfig get() {
