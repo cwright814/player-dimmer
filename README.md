@@ -4,10 +4,10 @@ A Minecraft mod (v26.1.2) that gives you control over the brightness of the play
 
 ## Features
 * **Brightness Interpolation:** Three modes (Fancy, Fast, Off) to smoothly transition the player's lighting and eliminate jarring "strobe" effects when crossing block boundaries.
-* **Configurable Interpolation Speed:** Adjust the speed at which the brightness visually transitions (default: 80).
-* Configurable brightness reduction (default: 10%).
-* Configurable maximum brightness limit (default: 90%).
-* Configurable minimum brightness limit (default: 0%).
+* **Configurable Interpolation Speed:** Adjust the speed at which the brightness visually transitions.
+* Configurable brightness reduction.
+* Configurable maximum brightness limit.
+* Configurable minimum brightness limit.
 * Options to apply the dimmer exclusively to the main player or to all players.
 * Accessible via Mod Menu.
 
