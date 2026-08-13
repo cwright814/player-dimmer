@@ -54,8 +54,17 @@ public class PlayerRendererMixin<T extends Entity> {
                     if (dt > 0.1f) dt = 0.1f; // cap at 10fps
                     if (dt <= 0.0f) dt = 0.001f;
                     
-                    // Fixed speed factor of 1.0 (constant time-based fade, ~3.0 units/sec)
-                    float lerpFactor = 1.0f - (float)Math.exp(-3.0f * dt);
+                    double dx = player.getX() - player.xOld;
+                    double dy = player.getY() - player.yOld;
+                    double dz = player.getZ() - player.zOld;
+                    float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    // Base rate multiplier is 1.0. A typical walk is ~0.215 blocks/tick.
+                    // (0.215 * 14.0 = ~3.0). This adds up to a 4x multiplier when walking.
+                    float speedMultiplier = 1.0f + (distanceMoved * 14.0f);
+                    
+                    // Time-based exponential decay (frame-rate independent)
+                    float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
                     
                     float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
                     float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
