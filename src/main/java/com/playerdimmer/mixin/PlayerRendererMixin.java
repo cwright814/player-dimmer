@@ -117,9 +117,8 @@ public class PlayerRendererMixin<T extends Entity> {
                 }
                 
                 if (progress < 1.0f) {
-                    float baseRate = 0.5f * dt; // takes 2 seconds if standing perfectly still
                     float moveRate = distanceMoved / 1.075f; // takes 0.25 seconds at walk speed
-                    progress += (baseRate + moveRate);
+                    progress += moveRate;
                     if (progress > 1.0f) progress = 1.0f;
                     fastModeTransitionProgress.put(uuid, progress);
                 }
@@ -152,6 +151,10 @@ public class PlayerRendererMixin<T extends Entity> {
                 if (snap) {
                     timePrevBlock = blockLightLevel;
                     timePrevSky = skyLightLevel;
+                    
+                    // Overrule the crossfade to avoid issues (e.g. freezing while pulling out a torch standing still)
+                    progress = 1.0f;
+                    fastModeTransitionProgress.put(uuid, progress);
                 }
                 
                 float timeBlock = timePrevBlock + (blockLightLevel - timePrevBlock) * lerpFactor;
