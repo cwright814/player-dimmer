@@ -156,14 +156,14 @@ public class PlayerRendererMixin<T extends Entity> {
                     timePrevSky = skyLightLevel;
                 }
                 
-                // Crossfade exceptions: >80% (12.0) or >50% (7.5) at low speed
+                // Crossfade exceptions: >65% (9.75) or >35% (5.25) at low speed
                 boolean overruleCrossfade = false;
-                // If the mode just changed (e.g. pulled out a torch), do NOT let the high-speed 80% rule
+                // If the mode just changed (e.g. pulled out a torch), do NOT let the high-speed 65% rule
                 // overrule the crossfade, because pulling out a torch is a 93% jump and we WANT it to crossfade!
-                if (maxDiff >= 12.0f && !modeJustChanged) {
+                if (maxDiff >= 9.75f && !modeJustChanged) {
                     overruleCrossfade = true;
-                } else if (maxDiff >= 7.5f && distanceMoved <= 0.07f) {
-                    // We DO still allow the low-speed 50% rule to overrule, to prevent freezing.
+                } else if (maxDiff >= 5.25f && distanceMoved <= 0.07f) {
+                    // We DO still allow the low-speed 35% rule to overrule, to prevent freezing.
                     overruleCrossfade = true;
                 }
                 
