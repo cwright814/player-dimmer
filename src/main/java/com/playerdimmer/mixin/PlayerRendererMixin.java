@@ -23,6 +23,19 @@ public class PlayerRendererMixin<T extends Entity> {
     private static final java.util.Map<java.util.UUID, Float> fastModeSkyLight = new java.util.WeakHashMap<>();
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Long> fastModeLastTime = new java.util.WeakHashMap<>();
+    
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Boolean> fastModePreviousState = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTransitionProgress = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTransitionStartBlock = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTransitionStartSky = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTimeBlock = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTimeSky = new java.util.WeakHashMap<>();
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", at = @At("RETURN"))
     private void onExtractRenderState(Entity entity, net.minecraft.client.renderer.entity.state.EntityRenderState state, float partialTicks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
@@ -84,15 +97,36 @@ public class PlayerRendererMixin<T extends Entity> {
                 double dz = player.getZ() - player.zOld;
                 float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
                 
-                float lerpFactor = 1.0f; // 1.0 = Latency-free (instant snap)
-                if (applyTimeSmoothing) {
-                    // Stand-still speed is 0 (freezes transition when stopped).
-                    // The multiplier determines how fast it fades while moving.
-                    float speedMultiplier = distanceMoved * config.fastModeSpeed;
+                // Track state transition between Spatial and Time Smoothing
+                boolean currentState = applyTimeSmoothing;
+                boolean previousState = fastModePreviousState.getOrDefault(uuid, currentState);
+                
+                float progress = fastModeTransitionProgress.getOrDefault(uuid, 1.0f);
+                float startBlock = fastModeTransitionStartBlock.getOrDefault(uuid, blockLightLevel);
+                float startSky = fastModeTransitionStartSky.getOrDefault(uuid, skyLightLevel);
+                
+                if (currentState != previousState) {
+                    progress = 0.0f;
+                    // The start value of the transition is what was literally rendered last frame
+                    startBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
+                    startSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
                     
-                    // Time-based exponential decay (frame-rate independent)
-                    lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
+                    fastModePreviousState.put(uuid, currentState);
+                    fastModeTransitionStartBlock.put(uuid, startBlock);
+                    fastModeTransitionStartSky.put(uuid, startSky);
                 }
+                
+                if (progress < 1.0f) {
+                    float baseRate = 0.5f * dt; // takes 2 seconds if standing perfectly still
+                    float moveRate = distanceMoved / 1.075f; // takes 0.25 seconds at walk speed
+                    progress += (baseRate + moveRate);
+                    if (progress > 1.0f) progress = 1.0f;
+                    fastModeTransitionProgress.put(uuid, progress);
+                }
+                
+                // Calculate time-smoothed curve (Mode B)
+                float speedMultiplier = distanceMoved * config.fastModeSpeed;
+                float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
                 
                 float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
                 float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
@@ -106,24 +140,33 @@ public class PlayerRendererMixin<T extends Entity> {
                 boolean snap = false;
                 float maxDiff = Math.max(targetBlockDiff, targetSkyDiff);
                 
-                // Snap if target changes drastically (>50% of 15 is 7.5),
-                // or changes suddenly (>20% of 15 is 3.0) while moving slowly (sneak speed ~0.065 or less)
                 if (maxDiff >= 7.5f) {
                     snap = true;
                 } else if (maxDiff >= 3.0f && distanceMoved <= 0.07f) {
                     snap = true;
                 }
                 
-                float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
-                float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
+                float timePrevBlock = fastModeTimeBlock.getOrDefault(uuid, blockLightLevel);
+                float timePrevSky = fastModeTimeSky.getOrDefault(uuid, skyLightLevel);
                 
                 if (snap) {
-                    prevBlock = blockLightLevel;
-                    prevSky = skyLightLevel;
+                    timePrevBlock = blockLightLevel;
+                    timePrevSky = skyLightLevel;
                 }
                 
-                blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
-                skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
+                float timeBlock = timePrevBlock + (blockLightLevel - timePrevBlock) * lerpFactor;
+                float timeSky = timePrevSky + (skyLightLevel - timePrevSky) * lerpFactor;
+                
+                fastModeTimeBlock.put(uuid, timeBlock);
+                fastModeTimeSky.put(uuid, timeSky);
+                
+                // Now determine the target for the CURRENT active mode
+                float activeBlock = applyTimeSmoothing ? timeBlock : blockLightLevel;
+                float activeSky = applyTimeSmoothing ? timeSky : skyLightLevel;
+                
+                // Finally, cross-fade from the start of the transition to the active mode
+                blockLightLevel = startBlock * (1.0f - progress) + activeBlock * progress;
+                skyLightLevel = startSky * (1.0f - progress) + activeSky * progress;
             }
             
             // Unconditionally store the final light levels and timestamp so that
@@ -132,6 +175,13 @@ public class PlayerRendererMixin<T extends Entity> {
             fastModeBlockLight.put(uuid, blockLightLevel);
             fastModeSkyLight.put(uuid, skyLightLevel);
             fastModeLastTime.put(uuid, System.nanoTime());
+            
+            if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.OFF) {
+                fastModeTimeBlock.put(uuid, blockLightLevel);
+                fastModeTimeSky.put(uuid, skyLightLevel);
+                fastModeTargetBlock.put(uuid, blockLightLevel);
+                fastModeTargetSky.put(uuid, skyLightLevel);
+            }
             
             // Apply modifiers ONLY to block light
             blockLightLevel = applyModifiers(blockLightLevel, config);
