@@ -193,6 +193,7 @@ public class PlayerRendererMixin<T extends Entity> {
             fastModeBlockLight.put(uuid, blockLightLevel);
             fastModeSkyLight.put(uuid, skyLightLevel);
             fastModeLastTime.put(uuid, System.nanoTime());
+            fastModePreviousState.put(uuid, applyTimeSmoothing);
             
             if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.OFF) {
                 fastModeTimeBlock.put(uuid, blockLightLevel);
