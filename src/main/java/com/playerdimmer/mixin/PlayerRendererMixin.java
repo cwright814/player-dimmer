@@ -151,8 +151,17 @@ public class PlayerRendererMixin<T extends Entity> {
                 if (snap) {
                     timePrevBlock = blockLightLevel;
                     timePrevSky = skyLightLevel;
-                    
-                    // Overrule the crossfade to avoid issues (e.g. freezing while pulling out a torch standing still)
+                }
+                
+                // Crossfade exceptions: >80% (12.0) or >50% (7.5) at low speed
+                boolean overruleCrossfade = false;
+                if (maxDiff >= 12.0f) {
+                    overruleCrossfade = true;
+                } else if (maxDiff >= 7.5f && distanceMoved <= 0.07f) {
+                    overruleCrossfade = true;
+                }
+                
+                if (overruleCrossfade) {
                     progress = 1.0f;
                     fastModeTransitionProgress.put(uuid, progress);
                 }
