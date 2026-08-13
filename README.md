@@ -3,6 +3,8 @@
 A Minecraft mod (v26.1.2) that gives you control over the brightness of the player model. This helps reduce eye strain caused by overly bright player models in dimly lit areas (such as caves) when using third-person or specific first-person mods.
 
 ## Features
+* **Brightness Interpolation:** Three modes (Fancy, Fast, Off) to smoothly transition the player's lighting and eliminate jarring "strobe" effects when crossing block boundaries.
+* **Configurable Interpolation Speed:** Adjust the speed at which the brightness visually transitions (default: 80).
 * Configurable brightness reduction (default: 10%).
 * Configurable maximum brightness limit (default: 90%).
 * Configurable minimum brightness limit (default: 0%).
