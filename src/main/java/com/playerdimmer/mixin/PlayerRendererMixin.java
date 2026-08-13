@@ -59,9 +59,10 @@ public class PlayerRendererMixin<T extends Entity> {
                     double dz = player.getZ() - player.zOld;
                     float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
                     
-                    // Base rate multiplier is 1.0. A typical walk is ~0.215 blocks/tick.
-                    // (0.215 * 14.0 = ~3.0). This adds up to a 4x multiplier when walking.
-                    float speedMultiplier = 1.0f + (distanceMoved * 14.0f);
+                    // Stand-still speed is 0 (freezes transition when stopped).
+                    // A typical walk is ~0.215 blocks/tick. We want this to be 4x the original 
+                    // base speed (which was 1.0). So 0.215 * 18.6 ~= 4.0 multiplier.
+                    float speedMultiplier = distanceMoved * 18.6f;
                     
                     // Time-based exponential decay (frame-rate independent)
                     float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
