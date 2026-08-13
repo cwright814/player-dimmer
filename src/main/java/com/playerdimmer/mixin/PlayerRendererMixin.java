@@ -17,6 +17,8 @@ public class PlayerRendererMixin<T extends Entity> {
     private static final java.util.Map<java.util.UUID, Float> fastModeBlockLight = new java.util.WeakHashMap<>();
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeSkyLight = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Long> fastModeLastTime = new java.util.WeakHashMap<>();
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", at = @At("RETURN"))
     private void onExtractRenderState(Entity entity, net.minecraft.client.renderer.entity.state.EntityRenderState state, float partialTicks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
@@ -43,14 +45,18 @@ public class PlayerRendererMixin<T extends Entity> {
                 skyLightLevel = ((packedLight >> 16) & 0xFFFF) / 16.0f;
 
                 if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FAST) {
-                    double dx = player.getX() - player.xOld;
-                    double dy = player.getY() - player.yOld;
-                    double dz = player.getZ() - player.zOld;
-                    float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
-                    
-                    float lerpFactor = Math.max(0.0f, Math.min(1.0f, 0.02f + (distanceMoved * 2.0f)));
-                    
                     java.util.UUID uuid = player.getUUID();
+                    long currentTime = System.nanoTime();
+                    long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
+                    fastModeLastTime.put(uuid, currentTime);
+                    
+                    float dt = (currentTime - lastTime) / 1000000000.0f; // seconds
+                    if (dt > 0.1f) dt = 0.1f; // cap at 10fps
+                    if (dt <= 0.0f) dt = 0.001f;
+                    
+                    // Fixed speed factor of 1.0 (constant time-based fade, ~3.0 units/sec)
+                    float lerpFactor = 1.0f - (float)Math.exp(-3.0f * dt);
+                    
                     float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
                     float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
                     
@@ -92,25 +98,27 @@ public class PlayerRendererMixin<T extends Entity> {
         float yFrac = (float) (yBase - y0);
         float zFrac = (float) (zBase - z0);
 
-        float blockLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0);
-        float blockLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0);
-        float blockLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0);
-        float blockLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0);
-        float blockLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0 + 1);
-        float blockLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0 + 1);
-        float blockLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0 + 1);
-        float blockLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0 + 1);
+        net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(pos);
+
+        float blockLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0, level, centerPos);
+        float blockLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0, level, centerPos);
+        float blockLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0, level, centerPos);
+        float blockLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0, level, centerPos);
+        float blockLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0, z0 + 1, level, centerPos);
+        float blockLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0, z0 + 1, level, centerPos);
+        float blockLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0, y0 + 1, z0 + 1, level, centerPos);
+        float blockLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.BLOCK, x0 + 1, y0 + 1, z0 + 1, level, centerPos);
 
         float blockLight = lerp3(xFrac, yFrac, zFrac, blockLight000, blockLight100, blockLight010, blockLight110, blockLight001, blockLight101, blockLight011, blockLight111);
 
-        float skyLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0);
-        float skyLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0);
-        float skyLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0);
-        float skyLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0);
-        float skyLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0 + 1);
-        float skyLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0 + 1);
-        float skyLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0 + 1);
-        float skyLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0 + 1);
+        float skyLight000 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0, level, centerPos);
+        float skyLight100 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0, level, centerPos);
+        float skyLight010 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0, level, centerPos);
+        float skyLight110 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0, level, centerPos);
+        float skyLight001 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0, z0 + 1, level, centerPos);
+        float skyLight101 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0, z0 + 1, level, centerPos);
+        float skyLight011 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0, y0 + 1, z0 + 1, level, centerPos);
+        float skyLight111 = getLight(lightEngine, net.minecraft.world.level.LightLayer.SKY, x0 + 1, y0 + 1, z0 + 1, level, centerPos);
 
         float skyLight = lerp3(xFrac, yFrac, zFrac, skyLight000, skyLight100, skyLight010, skyLight110, skyLight001, skyLight101, skyLight011, skyLight111);
 
@@ -118,8 +126,12 @@ public class PlayerRendererMixin<T extends Entity> {
     }
     
     @org.spongepowered.asm.mixin.Unique
-    private float getLight(net.minecraft.world.level.lighting.LevelLightEngine engine, net.minecraft.world.level.LightLayer layer, int x, int y, int z) {
+    private float getLight(net.minecraft.world.level.lighting.LevelLightEngine engine, net.minecraft.world.level.LightLayer layer, int x, int y, int z, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos centerPos) {
         net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+        net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+        if (state.isSolidRender()) {
+            return engine.getLayerListener(layer).getLightValue(centerPos);
+        }
         return engine.getLayerListener(layer).getLightValue(pos);
     }
     
