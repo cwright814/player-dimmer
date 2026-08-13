@@ -48,7 +48,6 @@ public class PlayerRendererMixin<T extends Entity> {
                     java.util.UUID uuid = player.getUUID();
                     long currentTime = System.nanoTime();
                     long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
-                    fastModeLastTime.put(uuid, currentTime);
                     
                     float dt = (currentTime - lastTime) / 1000000000.0f; // seconds
                     if (dt > 0.1f) dt = 0.1f; // cap at 10fps
@@ -71,11 +70,15 @@ public class PlayerRendererMixin<T extends Entity> {
                     
                     blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
                     skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
-                    
-                    fastModeBlockLight.put(uuid, blockLightLevel);
-                    fastModeSkyLight.put(uuid, skyLightLevel);
                 }
             }
+            
+            // Unconditionally store the final light levels and timestamp so that
+            // switching TO Fast mode later snaps seamlessly to the current state.
+            java.util.UUID uuid = player.getUUID();
+            fastModeBlockLight.put(uuid, blockLightLevel);
+            fastModeSkyLight.put(uuid, skyLightLevel);
+            fastModeLastTime.put(uuid, System.nanoTime());
             
             // Apply modifiers ONLY to block light
             blockLightLevel = applyModifiers(blockLightLevel, config);
