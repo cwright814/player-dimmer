@@ -105,7 +105,9 @@ public class PlayerRendererMixin<T extends Entity> {
                 float startBlock = fastModeTransitionStartBlock.getOrDefault(uuid, blockLightLevel);
                 float startSky = fastModeTransitionStartSky.getOrDefault(uuid, skyLightLevel);
                 
+                boolean modeJustChanged = false;
                 if (currentState != previousState) {
+                    modeJustChanged = true;
                     progress = 0.0f;
                     // The start value of the transition is what was literally rendered last frame
                     startBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
@@ -155,9 +157,12 @@ public class PlayerRendererMixin<T extends Entity> {
                 
                 // Crossfade exceptions: >80% (12.0) or >50% (7.5) at low speed
                 boolean overruleCrossfade = false;
-                if (maxDiff >= 12.0f) {
+                // If the mode just changed (e.g. pulled out a torch), do NOT let the high-speed 80% rule
+                // overrule the crossfade, because pulling out a torch is a 93% jump and we WANT it to crossfade!
+                if (maxDiff >= 12.0f && !modeJustChanged) {
                     overruleCrossfade = true;
                 } else if (maxDiff >= 7.5f && distanceMoved <= 0.07f) {
+                    // We DO still allow the low-speed 50% rule to overrule, to prevent freezing.
                     overruleCrossfade = true;
                 }
                 
