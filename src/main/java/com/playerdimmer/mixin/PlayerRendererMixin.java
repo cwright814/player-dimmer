@@ -61,59 +61,59 @@ public class PlayerRendererMixin<T extends Entity> {
                 int packedLight = state.lightCoords;
                 blockLightLevel = (packedLight & 0xFFFF) / 16.0f;
                 skyLightLevel = ((packedLight >> 16) & 0xFFFF) / 16.0f;
+            }
 
-                if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FAST) {
-                    java.util.UUID uuid = player.getUUID();
-                    long currentTime = System.nanoTime();
-                    long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
-                    
-                    float dt = (currentTime - lastTime) / 1000000000.0f; // seconds
-                    if (dt > 0.1f) dt = 0.1f; // cap at 10fps
-                    if (dt <= 0.0f) dt = 0.001f;
-                    
-                    double dx = player.getX() - player.xOld;
-                    double dy = player.getY() - player.yOld;
-                    double dz = player.getZ() - player.zOld;
-                    float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
-                    
-                    // Stand-still speed is 0 (freezes transition when stopped).
-                    // The multiplier determines how fast it fades while moving.
-                    float speedMultiplier = distanceMoved * config.fastModeSpeed;
-                    
-                    // Time-based exponential decay (frame-rate independent)
-                    float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
-                    
-                    float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
-                    float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
-                    
-                    float targetBlockDiff = Math.abs(blockLightLevel - prevTargetBlock);
-                    float targetSkyDiff = Math.abs(skyLightLevel - prevTargetSky);
-                    
-                    fastModeTargetBlock.put(uuid, blockLightLevel);
-                    fastModeTargetSky.put(uuid, skyLightLevel);
-                    
-                    boolean snap = false;
-                    float maxDiff = Math.max(targetBlockDiff, targetSkyDiff);
-                    
-                    // Snap if target changes drastically (>50% of 15 is 7.5),
-                    // or changes suddenly (>20% of 15 is 3.0) while moving slowly (sneak speed ~0.065 or less)
-                    if (maxDiff >= 7.5f) {
-                        snap = true;
-                    } else if (maxDiff >= 3.0f && distanceMoved <= 0.07f) {
-                        snap = true;
-                    }
-                    
-                    float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
-                    float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
-                    
-                    if (snap) {
-                        prevBlock = blockLightLevel;
-                        prevSky = skyLightLevel;
-                    }
-                    
-                    blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
-                    skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
+            if (config.interpolationMode != PlayerDimmerConfig.InterpolationMode.OFF) {
+                java.util.UUID uuid = player.getUUID();
+                long currentTime = System.nanoTime();
+                long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
+                
+                float dt = (currentTime - lastTime) / 1000000000.0f; // seconds
+                if (dt > 0.1f) dt = 0.1f; // cap at 10fps
+                if (dt <= 0.0f) dt = 0.001f;
+                
+                double dx = player.getX() - player.xOld;
+                double dy = player.getY() - player.yOld;
+                double dz = player.getZ() - player.zOld;
+                float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                // Stand-still speed is 0 (freezes transition when stopped).
+                // The multiplier determines how fast it fades while moving.
+                float speedMultiplier = distanceMoved * config.fastModeSpeed;
+                
+                // Time-based exponential decay (frame-rate independent)
+                float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
+                
+                float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
+                float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
+                
+                float targetBlockDiff = Math.abs(blockLightLevel - prevTargetBlock);
+                float targetSkyDiff = Math.abs(skyLightLevel - prevTargetSky);
+                
+                fastModeTargetBlock.put(uuid, blockLightLevel);
+                fastModeTargetSky.put(uuid, skyLightLevel);
+                
+                boolean snap = false;
+                float maxDiff = Math.max(targetBlockDiff, targetSkyDiff);
+                
+                // Snap if target changes drastically (>50% of 15 is 7.5),
+                // or changes suddenly (>20% of 15 is 3.0) while moving slowly (sneak speed ~0.065 or less)
+                if (maxDiff >= 7.5f) {
+                    snap = true;
+                } else if (maxDiff >= 3.0f && distanceMoved <= 0.07f) {
+                    snap = true;
                 }
+                
+                float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
+                float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
+                
+                if (snap) {
+                    prevBlock = blockLightLevel;
+                    prevSky = skyLightLevel;
+                }
+                
+                blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
+                skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
             }
             
             // Unconditionally store the final light levels and timestamp so that

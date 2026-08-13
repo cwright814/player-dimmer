@@ -52,12 +52,12 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .build();
             general.addEntry(interpolationEntry);
             
-            general.addEntry(entryBuilder.startIntSlider(Component.literal("Fast Mode Speed"), (int)(PlayerDimmerConfig.get().fastModeSpeed * 10), 10, 300)
+            general.addEntry(entryBuilder.startIntSlider(Component.literal("Interpolation Speed"), (int)(PlayerDimmerConfig.get().fastModeSpeed * 10), 10, 300)
                     .setDefaultValue(80)
-                    .setTooltip(Component.literal("Fade speed multiplier for FAST mode."))
+                    .setTooltip(Component.literal("Fade speed multiplier for FAST and FANCY modes."))
                     .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().fastModeSpeed = newValue / 10.0f)
-                    .setDisplayRequirement(() -> interpolationEntry.getValue() == PlayerDimmerConfig.InterpolationMode.FAST)
+                    .setDisplayRequirement(() -> interpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
             return builder.build();
