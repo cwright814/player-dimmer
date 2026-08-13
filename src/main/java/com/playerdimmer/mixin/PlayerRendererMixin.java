@@ -38,6 +38,8 @@ public class PlayerRendererMixin<T extends Entity> {
             float blockLightLevel;
             float skyLightLevel;
 
+            boolean applyTimeSmoothing = false;
+
             if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FANCY) {
                 // Compute true 3D trilinear interpolation
                 float[] trilinear = computeTrilinearLight(player, partialTicks);
@@ -56,11 +58,16 @@ public class PlayerRendererMixin<T extends Entity> {
                 // it means a dynamic lighting mod (or fire) artificially boosted it. Respect that boost!
                 if (baseBlockLight > centerBlockLight) {
                     blockLightLevel = Math.max(blockLightLevel, baseBlockLight);
+                    applyTimeSmoothing = true;
                 }
             } else {
                 int packedLight = state.lightCoords;
                 blockLightLevel = (packedLight & 0xFFFF) / 16.0f;
                 skyLightLevel = ((packedLight >> 16) & 0xFFFF) / 16.0f;
+                
+                if (config.interpolationMode == PlayerDimmerConfig.InterpolationMode.FAST) {
+                    applyTimeSmoothing = true;
+                }
             }
 
             if (config.interpolationMode != PlayerDimmerConfig.InterpolationMode.OFF) {
@@ -77,12 +84,15 @@ public class PlayerRendererMixin<T extends Entity> {
                 double dz = player.getZ() - player.zOld;
                 float distanceMoved = (float) Math.sqrt(dx*dx + dy*dy + dz*dz);
                 
-                // Stand-still speed is 0 (freezes transition when stopped).
-                // The multiplier determines how fast it fades while moving.
-                float speedMultiplier = distanceMoved * config.fastModeSpeed;
-                
-                // Time-based exponential decay (frame-rate independent)
-                float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
+                float lerpFactor = 1.0f; // 1.0 = Latency-free (instant snap)
+                if (applyTimeSmoothing) {
+                    // Stand-still speed is 0 (freezes transition when stopped).
+                    // The multiplier determines how fast it fades while moving.
+                    float speedMultiplier = distanceMoved * config.fastModeSpeed;
+                    
+                    // Time-based exponential decay (frame-rate independent)
+                    lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
+                }
                 
                 float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
                 float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
