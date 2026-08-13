@@ -14,6 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class PlayerRendererMixin<T extends Entity> {
 
     @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTargetBlock = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
+    private static final java.util.Map<java.util.UUID, Float> fastModeTargetSky = new java.util.WeakHashMap<>();
+    @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeBlockLight = new java.util.WeakHashMap<>();
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeSkyLight = new java.util.WeakHashMap<>();
@@ -79,8 +83,33 @@ public class PlayerRendererMixin<T extends Entity> {
                     // Time-based exponential decay (frame-rate independent)
                     float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
                     
+                    float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
+                    float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
+                    
+                    float targetBlockDiff = Math.abs(blockLightLevel - prevTargetBlock);
+                    float targetSkyDiff = Math.abs(skyLightLevel - prevTargetSky);
+                    
+                    fastModeTargetBlock.put(uuid, blockLightLevel);
+                    fastModeTargetSky.put(uuid, skyLightLevel);
+                    
+                    boolean snap = false;
+                    float maxDiff = Math.max(targetBlockDiff, targetSkyDiff);
+                    
+                    // Snap if target changes drastically (>50% of 15 is 7.5),
+                    // or changes suddenly (>20% of 15 is 3.0) while moving slowly (sneak speed ~0.065 or less)
+                    if (maxDiff >= 7.5f) {
+                        snap = true;
+                    } else if (maxDiff >= 3.0f && distanceMoved <= 0.07f) {
+                        snap = true;
+                    }
+                    
                     float prevBlock = fastModeBlockLight.getOrDefault(uuid, blockLightLevel);
                     float prevSky = fastModeSkyLight.getOrDefault(uuid, skyLightLevel);
+                    
+                    if (snap) {
+                        prevBlock = blockLightLevel;
+                        prevSky = skyLightLevel;
+                    }
                     
                     blockLightLevel = prevBlock + (blockLightLevel - prevBlock) * lerpFactor;
                     skyLightLevel = prevSky + (skyLightLevel - prevSky) * lerpFactor;
