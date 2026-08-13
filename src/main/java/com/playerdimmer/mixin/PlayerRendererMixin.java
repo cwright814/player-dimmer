@@ -39,6 +39,20 @@ public class PlayerRendererMixin<T extends Entity> {
                 float[] trilinear = computeTrilinearLight(player, partialTicks);
                 blockLightLevel = trilinear[0];
                 skyLightLevel = trilinear[1];
+                
+                // Account for client-side dynamic lights (e.g. LambDynamicLights) or Vanilla fire
+                // which inject boosted values directly into state.lightCoords.
+                int packedLight = state.lightCoords;
+                float baseBlockLight = (packedLight & 0xFFFF) / 16.0f;
+                
+                net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(player.getLightProbePosition(partialTicks));
+                float centerBlockLight = player.level().getLightEngine().getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(centerPos);
+                
+                // If baseBlockLight is strictly higher than the raw world center block light,
+                // it means a dynamic lighting mod (or fire) artificially boosted it. Respect that boost!
+                if (baseBlockLight > centerBlockLight) {
+                    blockLightLevel = Math.max(blockLightLevel, baseBlockLight);
+                }
             } else {
                 int packedLight = state.lightCoords;
                 blockLightLevel = (packedLight & 0xFFFF) / 16.0f;
