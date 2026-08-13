@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "player-dimmer",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Player Brightness Dimmer",
   "description": "Dims the player model.",
   "authors": [
