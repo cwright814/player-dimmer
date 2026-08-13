@@ -120,7 +120,7 @@ public class PlayerRendererMixin<T extends Entity> {
                 
                 if (progress < 1.0f) {
                     float tickVelocity = distanceMoved * 20.0f; // Approximate blocks per second
-                    float transitionRate = (tickVelocity / 4.3f) * 4.0f; // Rate per second (completes in 0.25s at walk speed)
+                    float transitionRate = (tickVelocity / 4.3f) * 1.0f; // Rate per second (completes in 1.0s at walk speed)
                     progress += transitionRate * dt;
                     if (progress > 1.0f) progress = 1.0f;
                     fastModeTransitionProgress.put(uuid, progress);
