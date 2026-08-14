@@ -1,6 +1,6 @@
 # Player Brightness Dimmer
 
-A Minecraft mod (v26.1.2) that gives you control over the brightness of the player model. This helps reduce eye strain caused by overly bright player models in dimly lit areas (such as caves) when using third-person or specific first-person mods.
+A Minecraft mod (v26.1.2) that gives you control over the brightness of the player model. This helps reduce eye strain caused by overly bright player models in dimly lit areas (such as caves) when using third-person or specific first-person mods. Interpolation also eliminates brightness strobing on the player model by going well beyond the vanilla 16 light levels.
 
 ## Features
 * **Brightness Interpolation:** Three modes (Fancy, Fast, Off) to smoothly transition the player's lighting and eliminate jarring "strobe" effects when crossing block boundaries.
