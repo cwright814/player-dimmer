@@ -20,8 +20,9 @@ A Minecraft mod (v26.1.2) that gives you control over the brightness of the play
 ## Authors
 * Gemini 3.1 Pro
 * cwright814
-* Gemma 4
 
+## Contributors
+* [Gemma 4](https://huggingface.co/bartowski/google_gemma-4-31B-it-GGUF) ([llama.cpp](https://github.com/ggml-org/llama.cpp) and [Cline CLI](https://github.com/cline/cline/blob/main/apps/cli/README.md))
 
 ## Development
 To increment the version number for a new release, use the included version bumping script. This ensures all relevant files are kept in sync:
