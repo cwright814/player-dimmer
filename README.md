@@ -12,10 +12,11 @@ A Minecraft mod (v26.1.2) that gives you control over the brightness of the play
 * Accessible via Mod Menu.
 
 ## Requirements
+* Java 25 or higher
 * Minecraft v26.1.2
 * Fabric Loader (>=0.14.22)
-* Java 25 or higher
-* Cloth Config API
+* Cloth Config (>=26.1.154)
+* Mod Menu (>=18.0.0)
 
 ## Authors
 * Gemini 3.1 Pro
