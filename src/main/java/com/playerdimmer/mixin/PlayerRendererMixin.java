@@ -158,9 +158,8 @@ public class PlayerRendererMixin<T extends Entity> {
                 
                 // Crossfade exceptions: >50% (7.5) or >20% (3.0) at low speed
                 boolean overruleCrossfade = false;
-                // If the mode just changed (e.g. pulled out a torch), do NOT let the high-speed 50% rule
-                // overrule the crossfade, because pulling out a torch is a 93% jump and we WANT it to crossfade!
-                if (maxDiff >= 7.5f && !modeJustChanged) {
+                // Overrule crossfade if light changes significantly (>50%) regardless of mode transition
+                if (maxDiff >= 7.5f) {
                     overruleCrossfade = true;
                 } else if (maxDiff >= 3.0f && distanceMoved <= 0.07f) {
                     // We DO still allow the low-speed 20% rule to overrule, to prevent freezing.
