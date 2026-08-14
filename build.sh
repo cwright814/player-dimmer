@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-# This script is hard-coded for my personal development environment. Providing it on GitHub solely as reference for how builds were generated. You will need to set up your own build workflow. An LLM can likely adapt this file for you if you are not sure where to begin.
+# This script is hard-coded for my personal development environment. Providing it on GitHub solely as reference for how builds were generated.
+# You will need to set up your own build workflow. An LLM can likely adapt this file for you if you are not sure where to begin.
 # -Christopher
 
 # Path to GitHub forks
