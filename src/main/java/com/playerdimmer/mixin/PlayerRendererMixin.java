@@ -119,7 +119,12 @@ public class PlayerRendererMixin<T extends Entity> {
             
             if (progress < 1.0f) {
                 float tickVelocity = distanceMoved * 20.0f;
-                float transitionRate = (tickVelocity / 4.3f) * 8.0f;
+                float baseTransitionRate = (tickVelocity / 4.3f) * 8.0f;
+                float minTransitionSpeed = 0.0f;
+                if (!isPlayer && mode == PlayerDimmerConfig.InterpolationMode.FANCY) {
+                    minTransitionSpeed = config.otherEntitiesMinInterpolationSpeed * 2.0f;
+                }
+                float transitionRate = baseTransitionRate + minTransitionSpeed;
                 progress += transitionRate * dt;
                 if (progress > 1.0f) progress = 1.0f;
                 fastModeTransitionProgress.put(uuid, progress);
@@ -134,7 +139,6 @@ public class PlayerRendererMixin<T extends Entity> {
             float lerpFactor = 1.0f - (float)Math.exp(-3.0f * effectiveSpeed * dt);
             
             float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
-
             float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
             
             float targetBlockDiff = Math.abs(blockLightLevel - prevTargetBlock);

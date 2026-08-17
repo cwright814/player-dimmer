@@ -47,17 +47,18 @@ public class PlayerDimmerModMenu implements ModMenuApi {
 
             ConfigCategory otherEntities = builder.getOrCreateCategory(Component.literal("Other Entities"));
             
-            otherEntities.addEntry(entryBuilder.startBooleanToggle(Component.literal("Enable"), PlayerDimmerConfig.get().applyToOtherEntities)
+            var applyToOtherEntitiesEntry = entryBuilder.startBooleanToggle(Component.literal("Enable"), PlayerDimmerConfig.get().applyToOtherEntities)
                     .setDefaultValue(true)
                     .setTooltip(Component.literal("Apply brightness modifier to all other entities."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().applyToOtherEntities = newValue)
-                    .build());
+                    .build();
+            otherEntities.addEntry(applyToOtherEntitiesEntry);
 
             var otherEntitiesInterpolationEntry = entryBuilder.startEnumSelector(Component.literal("Interpolation Mode"), PlayerDimmerConfig.InterpolationMode.class, PlayerDimmerConfig.get().otherEntitiesInterpolationMode)
                     .setDefaultValue(PlayerDimmerConfig.InterpolationMode.FAST)
                     .setTooltip(Component.literal("Smooth brightness interpolation mode for other entities."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesInterpolationMode = newValue)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build();
             otherEntities.addEntry(otherEntitiesInterpolationEntry);
 
@@ -65,21 +66,21 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setDefaultValue(0)
                     .setTooltip(Component.literal("Reduces the brightness intensity by this percentage."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesReductionPercentage = newValue)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Maximum (%)"), PlayerDimmerConfig.get().otherEntitiesMaximumPercentage, 0, 100)
                     .setDefaultValue(100)
                     .setTooltip(Component.literal("Caps the maximum brightness."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMaximumPercentage = newValue)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Minimum (%)"), PlayerDimmerConfig.get().otherEntitiesMinimumPercentage, 0, 100)
                     .setDefaultValue(0)
                     .setTooltip(Component.literal("Forces a minimum brightness."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMinimumPercentage = newValue)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesFastModeSpeed * 10), 10, 300)
@@ -87,15 +88,15 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setTooltip(Component.literal("Fade speed multiplier for other entities."))
                     .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesFastModeSpeed = newValue / 10.0f)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue() && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed * 10), 0, 100)
-                    .setDefaultValue(40)
+                    .setDefaultValue(20)
                     .setTooltip(Component.literal("Base interpolation speed for other entities."))
                     .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed = newValue / 10.0f)
-                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue() && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
             var interpolationEntry = entryBuilder.startEnumSelector(Component.literal("Interpolation Mode"), PlayerDimmerConfig.InterpolationMode.class, PlayerDimmerConfig.get().interpolationMode)
