@@ -18,8 +18,8 @@ public class PlayerDimmerConfig {
     public int minimumPercentage = 0;
     public boolean applyToOtherPlayers = true;
 
-    public int otherEntitiesReductionPercentage = 15;
-    public int otherEntitiesMaximumPercentage = 70;
+    public int otherEntitiesReductionPercentage = 0;
+    public int otherEntitiesMaximumPercentage = 100;
     public int otherEntitiesMinimumPercentage = 0;
     public boolean applyToOtherEntities = true;
 
@@ -28,11 +28,14 @@ public class PlayerDimmerConfig {
     }
     public InterpolationMode interpolationMode = InterpolationMode.FANCY;
     public float fastModeSpeed = 8.0f;
+    public float playerMinInterpolationSpeed = 0.0f;
 
     public InterpolationMode otherEntitiesInterpolationMode = InterpolationMode.FAST;
     public float otherEntitiesFastModeSpeed = 8.0f;
+    public float otherEntitiesMinInterpolationSpeed = 4.0f;
 
     private static PlayerDimmerConfig instance;
+
 
 
     public static PlayerDimmerConfig get() {

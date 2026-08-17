@@ -126,9 +126,15 @@ public class PlayerRendererMixin<T extends Entity> {
             }
             
             float speedMultiplier = distanceMoved * speed;
-            float lerpFactor = 1.0f - (float)Math.exp(-3.0f * speedMultiplier * dt);
+            
+            // Incorporate minimum interpolation speed
+            float minSpeed = isPlayer ? config.playerMinInterpolationSpeed : config.otherEntitiesMinInterpolationSpeed;
+            float effectiveSpeed = Math.max(minSpeed, speedMultiplier);
+            
+            float lerpFactor = 1.0f - (float)Math.exp(-3.0f * effectiveSpeed * dt);
             
             float prevTargetBlock = fastModeTargetBlock.getOrDefault(uuid, blockLightLevel);
+
             float prevTargetSky = fastModeTargetSky.getOrDefault(uuid, skyLightLevel);
             
             float targetBlockDiff = Math.abs(blockLightLevel - prevTargetBlock);

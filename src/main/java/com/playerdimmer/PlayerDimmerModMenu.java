@@ -62,14 +62,14 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             otherEntities.addEntry(otherEntitiesInterpolationEntry);
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Reduction (%)"), PlayerDimmerConfig.get().otherEntitiesReductionPercentage, 0, 100)
-                    .setDefaultValue(15)
+                    .setDefaultValue(0)
                     .setTooltip(Component.literal("Reduces the brightness intensity by this percentage."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesReductionPercentage = newValue)
                     .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Maximum (%)"), PlayerDimmerConfig.get().otherEntitiesMaximumPercentage, 0, 100)
-                    .setDefaultValue(70)
+                    .setDefaultValue(100)
                     .setTooltip(Component.literal("Caps the maximum brightness."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMaximumPercentage = newValue)
                     .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities)
@@ -90,6 +90,14 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
+            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed * 10), 0, 100)
+                    .setDefaultValue(40)
+                    .setTooltip(Component.literal("Base interpolation speed for other entities."))
+                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed = newValue / 10.0f)
+                    .setDisplayRequirement(() -> PlayerDimmerConfig.get().applyToOtherEntities && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
+                    .build());
+
             var interpolationEntry = entryBuilder.startEnumSelector(Component.literal("Interpolation Mode"), PlayerDimmerConfig.InterpolationMode.class, PlayerDimmerConfig.get().interpolationMode)
                     .setDefaultValue(PlayerDimmerConfig.InterpolationMode.FANCY)
                     .setTooltip(Component.literal("Smooth brightness interpolation mode. OFF: No interpolation. FAST: Velocity-based (fast, illusion of space). FANCY: True 3D spatial interpolation (accurate, heavier)."))
@@ -102,6 +110,14 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setTooltip(Component.literal("Fade speed multiplier for FAST and FANCY modes."))
                     .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().fastModeSpeed = newValue / 10.0f)
+                    .setDisplayRequirement(() -> interpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
+                    .build());
+
+            general.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().playerMinInterpolationSpeed * 10), 0, 100)
+                    .setDefaultValue(0)
+                    .setTooltip(Component.literal("Base interpolation speed for players."))
+                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().playerMinInterpolationSpeed = newValue / 10.0f)
                     .setDisplayRequirement(() -> interpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
