@@ -27,14 +27,15 @@ public class PlayerDimmerConfig {
         OFF, FAST, FANCY
     }
     public InterpolationMode interpolationMode = InterpolationMode.FANCY;
-    public float fastModeSpeed = 8.0f;
+    public float fastModeSpeed = 2.0f;
     public float playerMinInterpolationSpeed = 0.0f;
 
     public InterpolationMode otherEntitiesInterpolationMode = InterpolationMode.FAST;
     public float otherEntitiesFastModeSpeed = 8.0f;
-    public float otherEntitiesMinInterpolationSpeed = 4.0f;
+    public float otherEntitiesMinInterpolationSpeed = 2.0f;
 
     private static PlayerDimmerConfig instance;
+
 
 
 

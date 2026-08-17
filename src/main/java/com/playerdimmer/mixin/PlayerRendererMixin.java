@@ -121,8 +121,12 @@ public class PlayerRendererMixin<T extends Entity> {
                 float tickVelocity = distanceMoved * 20.0f;
                 float baseTransitionRate = (tickVelocity / 4.3f) * 8.0f;
                 float minTransitionSpeed = 0.0f;
-                if (!isPlayer && mode == PlayerDimmerConfig.InterpolationMode.FANCY) {
-                    minTransitionSpeed = config.otherEntitiesMinInterpolationSpeed * 2.0f;
+                if (mode == PlayerDimmerConfig.InterpolationMode.FANCY) {
+                    if (isPlayer) {
+                        minTransitionSpeed = config.playerMinInterpolationSpeed * 2.0f;
+                    } else {
+                        minTransitionSpeed = config.otherEntitiesMinInterpolationSpeed * 2.0f;
+                    }
                 }
                 float transitionRate = baseTransitionRate + minTransitionSpeed;
                 progress += transitionRate * dt;
