@@ -21,6 +21,12 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             ConfigCategory general = builder.getOrCreateCategory(Component.literal("Player Brightness"));
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
+            general.addEntry(entryBuilder.startBooleanToggle(Component.literal("Other Players"), PlayerDimmerConfig.get().applyToOtherPlayers)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("Apply brightness modifier to other players as well."))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().applyToOtherPlayers = newValue)
+                    .build());
+
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Reduction (%)"), PlayerDimmerConfig.get().reductionPercentage, 0, 100)
                     .setDefaultValue(15)
                     .setTooltip(Component.literal("Reduces the brightness intensity by this percentage."))
@@ -37,12 +43,6 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setDefaultValue(0)
                     .setTooltip(Component.literal("Forces a minimum brightness."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().minimumPercentage = newValue)
-                    .build());
-
-            general.addEntry(entryBuilder.startBooleanToggle(Component.literal("Other Players"), PlayerDimmerConfig.get().applyToOtherPlayers)
-                    .setDefaultValue(true)
-                    .setTooltip(Component.literal("Apply brightness modifier to other players as well."))
-                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().applyToOtherPlayers = newValue)
                     .build());
 
             ConfigCategory otherEntities = builder.getOrCreateCategory(Component.literal("Other Entities"));
@@ -115,7 +115,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .build());
 
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().playerMinInterpolationSpeed * 10), 0, 100)
-                    .setDefaultValue(0)
+                    .setDefaultValue(20)
                     .setTooltip(Component.literal("Base interpolation speed for players."))
                     .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().playerMinInterpolationSpeed = newValue / 10.0f)
