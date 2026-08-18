@@ -104,11 +104,14 @@ public class PlayerRendererMixin<T extends Entity> {
             }
         }
 
+        boolean isInterpolated = false;
+
         if (mode != PlayerDimmerConfig.InterpolationMode.OFF) {
             if (!isPlayer && (interpolationCount >= config.maxInterpolationEntities)) {
                 // Budget exceeded, use raw values
             } else {
-            long currentTime = System.nanoTime();
+                isInterpolated = true;
+                long currentTime = System.nanoTime();
             long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
             
             float dt = (currentTime - lastTime) / 1000000000.0f;
@@ -205,10 +208,12 @@ public class PlayerRendererMixin<T extends Entity> {
             }
         }
         
-        fastModeBlockLight.put(uuid, blockLightLevel);
-        fastModeSkyLight.put(uuid, skyLightLevel);
-        fastModeLastTime.put(uuid, System.nanoTime());
-        fastModePreviousState.put(uuid, applyTimeSmoothing);
+        if (isInterpolated) {
+            fastModeBlockLight.put(uuid, blockLightLevel);
+            fastModeSkyLight.put(uuid, skyLightLevel);
+            fastModeLastTime.put(uuid, System.nanoTime());
+            fastModePreviousState.put(uuid, applyTimeSmoothing);
+        }
         
         if (mode == PlayerDimmerConfig.InterpolationMode.OFF) {
             fastModeTimeBlock.put(uuid, blockLightLevel);
