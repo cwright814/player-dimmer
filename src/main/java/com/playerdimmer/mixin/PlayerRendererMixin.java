@@ -39,6 +39,9 @@ public class PlayerRendererMixin<T extends Entity> {
     private static int interpolationCount = 0;
     @org.spongepowered.asm.mixin.Unique
     private static long lastInterpolationTick = -1;
+    @org.spongepowered.asm.mixin.Unique
+    private static long frameStartTime = 0;
+
 
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeTimeSky = new java.util.WeakHashMap<>();
@@ -66,6 +69,7 @@ public class PlayerRendererMixin<T extends Entity> {
         if (currentTick != lastInterpolationTick) {
             lastInterpolationTick = currentTick;
             interpolationCount = 0;
+            frameStartTime = System.nanoTime();
         }
 
         // Config Selection
@@ -111,7 +115,7 @@ public class PlayerRendererMixin<T extends Entity> {
                 // Budget exceeded, use raw values
             } else {
                 isInterpolated = true;
-                long currentTime = System.nanoTime();
+                long currentTime = frameStartTime;
             long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
             
             float dt = (currentTime - lastTime) / 1000000000.0f;
@@ -211,7 +215,7 @@ public class PlayerRendererMixin<T extends Entity> {
         if (isInterpolated) {
             fastModeBlockLight.put(uuid, blockLightLevel);
             fastModeSkyLight.put(uuid, skyLightLevel);
-            fastModeLastTime.put(uuid, System.nanoTime());
+            fastModeLastTime.put(uuid, frameStartTime);
             fastModePreviousState.put(uuid, applyTimeSmoothing);
         }
         
