@@ -62,7 +62,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities / 10, 1, 201)
-                    .setDefaultValue(50)
+                    .setDefaultValue(25)
                     .setTooltip(Component.literal("Caps the number of entities that use expensive interpolation."))
                     .setTextGetter(value -> value == 201 ? Component.literal("Unlimited") : Component.literal(String.valueOf(value * 10)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maxInterpolationEntities = newValue * 10)
@@ -100,7 +100,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             otherEntities.addEntry(otherEntitiesInterpolationEntry);
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesFastModeSpeed * 10), 10, 300)
-                    .setDefaultValue(40)
+                    .setDefaultValue(80)
                     .setTooltip(Component.literal("Fade speed multiplier for other entities."))
                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesFastModeSpeed = newValue / 10.0f)
@@ -108,7 +108,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed * 10), 0, 100)
-                    .setDefaultValue(10)
+                    .setDefaultValue(15)
                     .setTooltip(Component.literal("Base interpolation speed for other entities."))
                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed = newValue / 10.0f)
