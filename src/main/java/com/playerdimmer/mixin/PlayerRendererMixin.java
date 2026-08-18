@@ -78,7 +78,7 @@ public class PlayerRendererMixin<T extends Entity> {
         float skyLightLevel;
         boolean applyTimeSmoothing = false;
 
-        boolean isOverBudget = (!isPlayer && config.maxInterpolationEntities != 2010 && (interpolationCount >= config.maxInterpolationEntities));
+        boolean isOverBudget = (!isPlayer && config.maxInterpolationEntities != 1010 && (interpolationCount >= config.maxInterpolationEntities));
 
         if (mode == PlayerDimmerConfig.InterpolationMode.FANCY) {
             if (isOverBudget) {

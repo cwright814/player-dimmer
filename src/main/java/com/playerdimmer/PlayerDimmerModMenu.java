@@ -61,10 +61,10 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
-            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities / 10, 1, 201)
+            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities / 10, 1, 101)
                     .setDefaultValue(PlayerDimmerDefaults.MAX_INTERPOLATION_ENTITIES / 10)
                     .setTooltip(Component.literal("Caps the number of entities that use expensive interpolation."))
-                    .setTextGetter(value -> value == 201 ? Component.literal("Unlimited") : Component.literal(String.valueOf(value * 10)))
+                    .setTextGetter(value -> value == 101 ? Component.literal("Unlimited") : Component.literal(String.valueOf(value * 10)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maxInterpolationEntities = newValue * 10)
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
