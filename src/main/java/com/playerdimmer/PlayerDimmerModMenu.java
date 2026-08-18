@@ -55,16 +55,17 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             otherEntities.addEntry(applyToOtherEntitiesEntry);
 
             otherEntities.addEntry(entryBuilder.startBooleanToggle(Component.literal("Include Item Entities"), PlayerDimmerConfig.get().includeItemEntities)
-                    .setDefaultValue(false)
+                    .setDefaultValue(true)
                     .setTooltip(Component.literal("Include item entities (minecraft:item) in dimming."))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().includeItemEntities = newValue)
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
-            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities, 1, 200)
+            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities / 10, 1, 201)
                     .setDefaultValue(50)
-                    .setTooltip(Component.literal("Limit the number of entities that use expensive interpolation per tick."))
-                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maxInterpolationEntities = newValue)
+                    .setTooltip(Component.literal("Caps the number of entities that use expensive interpolation."))
+                    .setTextGetter(value -> value == 201 ? Component.literal("Unlimited") : Component.literal(String.valueOf(value * 10)))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maxInterpolationEntities = newValue * 10)
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
                     .build());
 
@@ -99,17 +100,17 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             otherEntities.addEntry(otherEntitiesInterpolationEntry);
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesFastModeSpeed * 10), 10, 300)
-                    .setDefaultValue(80)
+                    .setDefaultValue(40)
                     .setTooltip(Component.literal("Fade speed multiplier for other entities."))
-                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                   .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesFastModeSpeed = newValue / 10.0f)
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue() && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
 
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed * 10), 0, 100)
-                    .setDefaultValue(20)
+                    .setDefaultValue(10)
                     .setTooltip(Component.literal("Base interpolation speed for other entities."))
-                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                   .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().otherEntitiesMinInterpolationSpeed = newValue / 10.0f)
                     .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue() && otherEntitiesInterpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
@@ -124,7 +125,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Interpolation Speed"), (int)(PlayerDimmerConfig.get().fastModeSpeed * 10), 10, 300)
                     .setDefaultValue(80)
                     .setTooltip(Component.literal("Fade speed multiplier for FAST and FANCY modes."))
-                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                   .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().fastModeSpeed = newValue / 10.0f)
                     .setDisplayRequirement(() -> interpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());
@@ -132,7 +133,7 @@ public class PlayerDimmerModMenu implements ModMenuApi {
             general.addEntry(entryBuilder.startIntSlider(Component.literal("Min Interpolation Speed"), (int)(PlayerDimmerConfig.get().playerMinInterpolationSpeed * 10), 0, 100)
                     .setDefaultValue(20)
                     .setTooltip(Component.literal("Base interpolation speed for players."))
-                    .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
+                   .setTextGetter(value -> Component.literal(String.format("%.1f", value / 10.0f)))
                     .setSaveConsumer(newValue -> PlayerDimmerConfig.get().playerMinInterpolationSpeed = newValue / 10.0f)
                     .setDisplayRequirement(() -> interpolationEntry.getValue() != PlayerDimmerConfig.InterpolationMode.OFF)
                     .build());

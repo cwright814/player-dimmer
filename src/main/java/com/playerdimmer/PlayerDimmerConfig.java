@@ -22,8 +22,8 @@ public class PlayerDimmerConfig {
     public int otherEntitiesMaximumPercentage = 100;
     public int otherEntitiesMinimumPercentage = 0;
     public boolean applyToOtherEntities = true;
-    public boolean includeItemEntities = false;
-    public int maxInterpolationEntities = 50;
+    public boolean includeItemEntities = true;
+    public int maxInterpolationEntities = 500;
 
 
     public enum InterpolationMode {
@@ -34,8 +34,8 @@ public class PlayerDimmerConfig {
     public float playerMinInterpolationSpeed = 2.0f;
 
     public InterpolationMode otherEntitiesInterpolationMode = InterpolationMode.FAST;
-    public float otherEntitiesFastModeSpeed = 8.0f;
-    public float otherEntitiesMinInterpolationSpeed = 2.0f;
+    public float otherEntitiesFastModeSpeed = 4.0f;
+    public float otherEntitiesMinInterpolationSpeed = 1.0f;
 
     private static PlayerDimmerConfig instance;
 

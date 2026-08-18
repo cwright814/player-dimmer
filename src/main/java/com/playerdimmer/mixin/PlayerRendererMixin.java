@@ -83,20 +83,28 @@ public class PlayerRendererMixin<T extends Entity> {
         float skyLightLevel;
         boolean applyTimeSmoothing = false;
 
+        boolean isOverBudget = (!isPlayer && config.maxInterpolationEntities != 2010 && (interpolationCount >= config.maxInterpolationEntities));
+
         if (mode == PlayerDimmerConfig.InterpolationMode.FANCY) {
-            float[] trilinear = computeTrilinearLight(entity, partialTicks);
-            blockLightLevel = trilinear[0];
-            skyLightLevel = trilinear[1];
-            
-            int packedLight = state.lightCoords;
-            float baseBlockLight = (packedLight & 0xFFFF) / 16.0f;
-            
-            net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(entity.getLightProbePosition(partialTicks));
-            float centerBlockLight = entity.level().getLightEngine().getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(centerPos);
-            
-            if (baseBlockLight > centerBlockLight) {
-                blockLightLevel = Math.max(blockLightLevel, baseBlockLight);
-                applyTimeSmoothing = true;
+            if (isOverBudget) {
+                int packedLight = state.lightCoords;
+                blockLightLevel = (packedLight & 0xFFFF) / 16.0f;
+                skyLightLevel = ((packedLight >> 16) & 0xFFFF) / 16.0f;
+            } else {
+                float[] trilinear = computeTrilinearLight(entity, partialTicks);
+                blockLightLevel = trilinear[0];
+                skyLightLevel = trilinear[1];
+                
+                int packedLight = state.lightCoords;
+                float baseBlockLight = (packedLight & 0xFFFF) / 16.0f;
+                
+                net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(entity.getLightProbePosition(partialTicks));
+                float centerBlockLight = entity.level().getLightEngine().getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(centerPos);
+                
+                if (baseBlockLight > centerBlockLight) {
+                    blockLightLevel = Math.max(blockLightLevel, baseBlockLight);
+                    applyTimeSmoothing = true;
+                }
             }
         } else {
             int packedLight = state.lightCoords;
@@ -111,8 +119,16 @@ public class PlayerRendererMixin<T extends Entity> {
         boolean isInterpolated = false;
 
         if (mode != PlayerDimmerConfig.InterpolationMode.OFF) {
-            if (!isPlayer && (interpolationCount >= config.maxInterpolationEntities)) {
-                // Budget exceeded, use raw values
+            if (isOverBudget) {
+                fastModeBlockLight.put(uuid, blockLightLevel);
+                fastModeSkyLight.put(uuid, skyLightLevel);
+                fastModeTargetBlock.put(uuid, blockLightLevel);
+                fastModeTargetSky.put(uuid, skyLightLevel);
+                fastModeTimeBlock.put(uuid, blockLightLevel);
+                fastModeTimeSky.put(uuid, skyLightLevel);
+                fastModeTransitionProgress.put(uuid, 1.0f);
+                fastModePreviousState.put(uuid, applyTimeSmoothing);
+                fastModeLastTime.put(uuid, frameStartTime);
             } else {
                 isInterpolated = true;
                 long currentTime = frameStartTime;
