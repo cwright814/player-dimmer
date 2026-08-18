@@ -13,29 +13,29 @@ public class PlayerDimmerConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "player-dimmer.json");
 
-    public int reductionPercentage = 15;
-    public int maximumPercentage = 70;
-    public int minimumPercentage = 0;
-    public boolean applyToOtherPlayers = true;
+    public int reductionPercentage = PlayerDimmerDefaults.REDUCTION_PERCENTAGE;
+    public int maximumPercentage = PlayerDimmerDefaults.MAXIMUM_PERCENTAGE;
+    public int minimumPercentage = PlayerDimmerDefaults.MINIMUM_PERCENTAGE;
+    public boolean applyToOtherPlayers = PlayerDimmerDefaults.APPLY_TO_OTHER_PLAYERS;
 
-    public int otherEntitiesReductionPercentage = 0;
-    public int otherEntitiesMaximumPercentage = 100;
-    public int otherEntitiesMinimumPercentage = 0;
-    public boolean applyToOtherEntities = true;
-    public boolean includeItemEntities = true;
-    public int maxInterpolationEntities = 250;
+    public int otherEntitiesReductionPercentage = PlayerDimmerDefaults.OTHER_ENTITIES_REDUCTION_PERCENTAGE;
+    public int otherEntitiesMaximumPercentage = PlayerDimmerDefaults.OTHER_ENTITIES_MAXIMUM_PERCENTAGE;
+    public int otherEntitiesMinimumPercentage = PlayerDimmerDefaults.OTHER_ENTITIES_MINIMUM_PERCENTAGE;
+    public boolean applyToOtherEntities = PlayerDimmerDefaults.APPLY_TO_OTHER_ENTITIES;
+    public boolean includeItemEntities = PlayerDimmerDefaults.INCLUDE_ITEM_ENTITIES;
+    public int maxInterpolationEntities = PlayerDimmerDefaults.MAX_INTERPOLATION_ENTITIES;
 
 
     public enum InterpolationMode {
         OFF, FAST, FANCY
     }
-    public InterpolationMode interpolationMode = InterpolationMode.FANCY;
-    public float fastModeSpeed = 8.0f;
-    public float playerMinInterpolationSpeed = 2.0f;
+    public InterpolationMode interpolationMode = PlayerDimmerDefaults.INTERPOLATION_MODE;
+    public float fastModeSpeed = PlayerDimmerDefaults.FAST_MODE_SPEED;
+    public float playerMinInterpolationSpeed = PlayerDimmerDefaults.PLAYER_MIN_INTERPOLATION_SPEED;
 
-    public InterpolationMode otherEntitiesInterpolationMode = InterpolationMode.FAST;
-    public float otherEntitiesFastModeSpeed = 8.0f;
-    public float otherEntitiesMinInterpolationSpeed = 1.5f;
+    public InterpolationMode otherEntitiesInterpolationMode = PlayerDimmerDefaults.OTHER_ENTITIES_INTERPOLATION_MODE;
+    public float otherEntitiesFastModeSpeed = PlayerDimmerDefaults.OTHER_ENTITIES_FAST_MODE_SPEED;
+    public float otherEntitiesMinInterpolationSpeed = PlayerDimmerDefaults.OTHER_ENTITIES_MIN_INTERPOLATION_SPEED;
 
     private static PlayerDimmerConfig instance;
 
