@@ -22,6 +22,9 @@ public class PlayerDimmerConfig {
     public int otherEntitiesMaximumPercentage = 100;
     public int otherEntitiesMinimumPercentage = 0;
     public boolean applyToOtherEntities = true;
+    public boolean includeItemEntities = false;
+    public int maxInterpolationEntities = 50;
+
 
     public enum InterpolationMode {
         OFF, FAST, FANCY

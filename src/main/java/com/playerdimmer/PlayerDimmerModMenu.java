@@ -54,6 +54,21 @@ public class PlayerDimmerModMenu implements ModMenuApi {
                     .build();
             otherEntities.addEntry(applyToOtherEntitiesEntry);
 
+            otherEntities.addEntry(entryBuilder.startBooleanToggle(Component.literal("Include Item Entities"), PlayerDimmerConfig.get().includeItemEntities)
+                    .setDefaultValue(false)
+                    .setTooltip(Component.literal("Include item entities (minecraft:item) in dimming."))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().includeItemEntities = newValue)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
+                    .build());
+
+            otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Max Interpolation Entities"), PlayerDimmerConfig.get().maxInterpolationEntities, 1, 200)
+                    .setDefaultValue(50)
+                    .setTooltip(Component.literal("Limit the number of entities that use expensive interpolation per tick."))
+                    .setSaveConsumer(newValue -> PlayerDimmerConfig.get().maxInterpolationEntities = newValue)
+                    .setDisplayRequirement(() -> applyToOtherEntitiesEntry.getValue())
+                    .build());
+
+
             otherEntities.addEntry(entryBuilder.startIntSlider(Component.literal("Reduction (%)"), PlayerDimmerConfig.get().otherEntitiesReductionPercentage, 0, 100)
                     .setDefaultValue(0)
                     .setTooltip(Component.literal("Reduces the brightness intensity by this percentage."))

@@ -4,6 +4,8 @@ import com.playerdimmer.PlayerDimmerConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,11 +36,18 @@ public class PlayerRendererMixin<T extends Entity> {
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeTimeBlock = new java.util.WeakHashMap<>();
     @org.spongepowered.asm.mixin.Unique
+    private static int interpolationCount = 0;
+    @org.spongepowered.asm.mixin.Unique
+    private static long lastInterpolationTick = -1;
+
+    @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeTimeSky = new java.util.WeakHashMap<>();
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", at = @At("RETURN"))
     private void onExtractRenderState(Entity entity, net.minecraft.client.renderer.entity.state.EntityRenderState state, float partialTicks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         if (entity == null) return;
+    java.util.UUID uuid = entity.getUUID();
+
 
         PlayerDimmerConfig config = PlayerDimmerConfig.get();
         boolean isPlayer = entity instanceof Player;
@@ -49,6 +58,14 @@ public class PlayerRendererMixin<T extends Entity> {
             if (!isMainPlayer && !config.applyToOtherPlayers) return;
         } else {
             if (!config.applyToOtherEntities) return;
+            if (entity instanceof ItemEntity && !config.includeItemEntities) return;
+        }
+
+
+        long currentTick = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : -1;
+        if (currentTick != lastInterpolationTick) {
+            lastInterpolationTick = currentTick;
+            interpolationCount = 0;
         }
 
         // Config Selection
@@ -88,7 +105,9 @@ public class PlayerRendererMixin<T extends Entity> {
         }
 
         if (mode != PlayerDimmerConfig.InterpolationMode.OFF) {
-            java.util.UUID uuid = entity.getUUID();
+            if (!isPlayer && (interpolationCount >= config.maxInterpolationEntities)) {
+                // Budget exceeded, use raw values
+            } else {
             long currentTime = System.nanoTime();
             long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
             
@@ -182,9 +201,10 @@ public class PlayerRendererMixin<T extends Entity> {
             
             blockLightLevel = startBlock * (1.0f - progress) + activeBlock * progress;
             skyLightLevel = startSky * (1.0f - progress) + activeSky * progress;
+                if (!isPlayer) interpolationCount++;
+            }
         }
         
-        java.util.UUID uuid = entity.getUUID();
         fastModeBlockLight.put(uuid, blockLightLevel);
         fastModeSkyLight.put(uuid, skyLightLevel);
         fastModeLastTime.put(uuid, System.nanoTime());
