@@ -38,10 +38,7 @@ public class PlayerRendererMixin<T extends Entity> {
     @org.spongepowered.asm.mixin.Unique
     private static int interpolationCount = 0;
     @org.spongepowered.asm.mixin.Unique
-    private static long lastInterpolationTick = -1;
-    @org.spongepowered.asm.mixin.Unique
-    private static long frameStartTime = 0;
-
+    private static long lastProcessTime = 0;
 
     @org.spongepowered.asm.mixin.Unique
     private static final java.util.Map<java.util.UUID, Float> fastModeTimeSky = new java.util.WeakHashMap<>();
@@ -49,8 +46,7 @@ public class PlayerRendererMixin<T extends Entity> {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", at = @At("RETURN"))
     private void onExtractRenderState(Entity entity, net.minecraft.client.renderer.entity.state.EntityRenderState state, float partialTicks, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         if (entity == null) return;
-    java.util.UUID uuid = entity.getUUID();
-
+        java.util.UUID uuid = entity.getUUID();
 
         PlayerDimmerConfig config = PlayerDimmerConfig.get();
         boolean isPlayer = entity instanceof Player;
@@ -64,13 +60,12 @@ public class PlayerRendererMixin<T extends Entity> {
             if (entity instanceof ItemEntity && !config.includeItemEntities) return;
         }
 
-
-        long currentTick = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : -1;
-        if (currentTick != lastInterpolationTick) {
-            lastInterpolationTick = currentTick;
+        long now = System.nanoTime();
+        // If more than 2 milliseconds (2,000,000 ns) passed since the last entity was processed, a new render frame has started.
+        if (now - lastProcessTime > 2_000_000L) {
             interpolationCount = 0;
-            frameStartTime = System.nanoTime();
         }
+        lastProcessTime = now;
 
         // Config Selection
         PlayerDimmerConfig.InterpolationMode mode = isPlayer ? config.interpolationMode : config.otherEntitiesInterpolationMode;
@@ -128,10 +123,10 @@ public class PlayerRendererMixin<T extends Entity> {
                 fastModeTimeSky.put(uuid, skyLightLevel);
                 fastModeTransitionProgress.put(uuid, 1.0f);
                 fastModePreviousState.put(uuid, applyTimeSmoothing);
-                fastModeLastTime.put(uuid, frameStartTime);
+                fastModeLastTime.put(uuid, now);
             } else {
                 isInterpolated = true;
-                long currentTime = frameStartTime;
+                long currentTime = now;
             long lastTime = fastModeLastTime.getOrDefault(uuid, currentTime);
             
             float dt = (currentTime - lastTime) / 1000000000.0f;
@@ -231,7 +226,7 @@ public class PlayerRendererMixin<T extends Entity> {
         if (isInterpolated) {
             fastModeBlockLight.put(uuid, blockLightLevel);
             fastModeSkyLight.put(uuid, skyLightLevel);
-            fastModeLastTime.put(uuid, frameStartTime);
+            fastModeLastTime.put(uuid, now);
             fastModePreviousState.put(uuid, applyTimeSmoothing);
         }
         

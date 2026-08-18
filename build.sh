@@ -18,7 +18,7 @@ BRIGADIER="1.3.10/d15b53a14cf20fdcaa98f731af5dda654452c010/brigadier-1.3.10"
 FASTUTIL="8.5.18/a6cff377eecc19c2037bf31568a6d7106b50ba1f/fastutil-8.5.18"
 
 # JAR output path
-OUTPUT="."
+OUTPUT=".."
 
 # Compile Java files
 echo "Compiling Java sources..."
